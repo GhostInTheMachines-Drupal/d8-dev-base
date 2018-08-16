@@ -1,0 +1,99 @@
+# PhpMyAdmin example
+name: pma-d8
+
+# Start with a basic LEMP recipe
+recipe: drupal8
+config:
+    webroot: web
+    php: '7.2'
+    drush: '~9'
+
+# Add in a proxy route to phpmyadmin
+proxy:
+  pma:
+    - pma.lemp.lndo.site
+
+# Add in phpmyadmin
+services:
+
+  # Override the appsever to add some environment variables and install an extra VIM package
+  appserver:
+    run: # Add Envoy task runner to automate remote server tasks
+    - cd $LANDO_MOUNT && composer install
+    - composer global require laravel/envoy
+    run_as_root:
+    - "apt-get update -y"
+    - "apt-get install build-essential chrpath libssl-dev libxft-dev libfreetype6-dev libfreetype6 libfontconfig1-dev libfontconfig1 -y"
+    - "wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2"
+    - "tar xvjf phantomjs-2.1.1-linux-x86_64.tar.bz2 -C /usr/local/share/"
+    - "ln -s /usr/local/share/phantomjs-2.1.1-linux-x86_64/bin/phantomjs /usr/local/bin/"
+    extras:
+      - apt-get update -y
+      - apt-get install vim -y
+    overrides:
+      services:
+        environment:
+          MYCONFIGVAR1: secretpasscode
+    composer:
+      drush/drush: ~9
+      phpunit/phpunit: '*'
+    php:
+      extras:
+        -"no-debug-non-zts"
+
+  # Add in another database to help with this example
+  database2:
+    type: mariadb
+
+  # Add a phpmyadmin db frontend
+  pma:
+
+    # Use the latest version of phpmyadmin
+    type: phpmyadmin
+
+    # The databases you want to look at, this will default to a service called
+    # "database"
+    #
+    # You might want to run `lando info` on your app to see what databases you
+    # have available
+    hosts:
+      - database
+      - database2
+
+    # Optionally load in a custom config file. This is relative to the app root
+    #
+    # You will not need to import the standard library or manage backends in this
+    # file. Those are handled automatically.
+    #
+    # config: config.user.inc.php
+
+    # There are various envvars you can specify to further customize how your
+    # pma works.
+    #
+    # See: https://hub.docker.com/r/phpmyadmin/phpmyadmin/
+    #
+    # overrides:
+      # services:
+        # environment:
+            # PMA_ARBITRARY: when set to 1 connection to the arbitrary server will be allowed
+            # PMA_HOST: define address/host name of the MySQL server
+            # PMA_VERBOSE: define verbose name of the MySQL server
+            # PMA_PORT: define port of the MySQL server
+            # PMA_HOSTS: define comma separated list of address/host names of the MySQL servers
+            # PMA_VERBOSES: define comma separated list of verbose names of the MySQL servers
+            # PMA_USER: define username to use for config authentication method
+            # PMA_PASSWORD: define password to use for config authentication method
+            # PMA_ABSOLUTE_URI: define user-facing URI
+
+# Add a lando vim command
+tooling:
+  vim:
+    service: appserver
+  envoy: # corresponding tooling for Envoy appserver
+    service: appserver
+  phpunit:
+      service: appserver
+      description: "Run PHP Unit tests: lando phpunit"
+  phantomjs:
+      service: appserver
+      description: "Run phantomjs commands"
