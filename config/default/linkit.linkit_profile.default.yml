@@ -1,0 +1,27 @@
+uuid: 45ca7d96-faec-41f9-aff5-d4b7b4ec2bcb
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: default
+label: Default
+description: 'First demo profile created by me'
+attributes:
+  title:
+    id: title
+    weight: 0
+    settings:
+      automatic_title: true
+matchers:
+  ae4005d5-a62d-462f-bdf5-ba7524658b80:
+    uuid: ae4005d5-a62d-462f-bdf5-ba7524658b80
+    id: 'entity:node'
+    weight: 0
+    settings:
+      result_description: ''
+      bundles:
+        article: article
+        page: page
+      group_by_bundle: false
+      include_unpublished: false
